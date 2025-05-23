@@ -1,3 +1,7 @@
+# 3.1.4
+
+- specified IOS verion in Podfile
+
 # 3.1.3
 
 - 🛠️ Fixed: Resolved an app crash issue in version 3.1.2. Apologies for not testing on a real device prior to release.
