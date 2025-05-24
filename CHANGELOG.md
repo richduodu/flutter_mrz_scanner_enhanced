@@ -1,4 +1,6 @@
-# 3.1.6
+# 3.1.8
+
+# 3.1.7
 updated min ios version
 # 3.1.6
 
