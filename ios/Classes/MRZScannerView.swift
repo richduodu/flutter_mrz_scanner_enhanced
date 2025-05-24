@@ -1,6 +1,5 @@
 import UIKit
 import AVFoundation
-import SwiftyTesseract
 import AudioToolbox
 import Vision
 
@@ -11,9 +10,7 @@ public protocol MRZScannerViewDelegate: AnyObject {
 }
 
 public class MRZScannerView: UIView {
-    // EDIT: Initialized Tesseract with the ocrb language.
-    fileprivate let tesseract = SwiftyTesseract(language: .custom("ocrb"), bundle: Bundle(url: Bundle(for: MRZScannerView.self).url(forResource: "TraineedDataBundle", withExtension: "bundle")!)!, engineMode: .tesseractLstmCombined)
-    
+
     fileprivate let captureSession = AVCaptureSession()
     fileprivate let videoOutput = AVCaptureVideoDataOutput()
     fileprivate let photoOutput = AVCapturePhotoOutput()
@@ -108,16 +105,40 @@ public class MRZScannerView: UIView {
     
     // MARK: MRZ
     // EDIT: Updated mrz(from:) to perform pre‑processing (grayscale & thresholding) before OCR.
-    fileprivate func mrz(from cgImage: CGImage) -> String? {
-        // Convert CGImage to UIImage and preprocess
-        let originalImage = UIImage(cgImage: cgImage)
-        let preprocessedImage = preprocessImage(originalImage)
+    // fileprivate func mrz(from cgImage: CGImage) -> String? {
+    //     // Convert CGImage to UIImage and preprocess
+    //     let originalImage = UIImage(cgImage: cgImage)
+    //     let preprocessedImage = preprocessImage(originalImage)
         
-        var recognizedString: String?
-        // Using Tesseract OCR on the preprocessed image.
-        tesseract.performOCR(on: preprocessedImage) { recognizedString = $0 }
-        return recognizedString
-    }
+    //     var recognizedString: String?
+    //     // Using Tesseract OCR on the preprocessed image.
+    //     tesseract.performOCR(on: preprocessedImage) { recognizedString = $0 }
+    //     return recognizedString
+    // }
+   fileprivate func mrz(from cgImage: CGImage, completion: @escaping (String?) -> Void) {
+       // 1) preprocess
+       let ui = preprocessImage(UIImage(cgImage: cgImage))
+       guard let preCg = ui.cgImage else { return completion(nil) }
+
+       // 2) setup Vision request
+       let req = VNRecognizeTextRequest { req, err in
+           guard err == nil,
+                 let obs = req.results as? [VNRecognizedTextObservation] else {
+               return completion(nil)
+           }
+           let lines = obs.compactMap { $0.topCandidates(1).first?.string }
+           completion(lines.joined(separator: "\n"))
+       }
+       req.recognitionLevel = .accurate
+       req.usesLanguageCorrection = false
+       // you can restrict character set here if you like:
+       // req.recognitionLanguages = ["OCRB"]
+
+       let handler = VNImageRequestHandler(cgImage: preCg, options: [:])
+       DispatchQueue.global(qos: .userInitiated).async {
+           try? handler.perform([req])
+       }
+  }
     
     // MARK: Preprocessing
     // EDIT: Added a preprocessing function to mimic the grayscale conversion and thresholding in Android.
@@ -342,9 +363,11 @@ extension MRZScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
             
             if let mrzTextImage = documentImage.cropping(to: mrzRegionRect) {
                 // Perform OCR on the cropped & preprocessed MRZ region.
-                if let mrzResult = self.mrz(from: mrzTextImage) {
-                    self.delegate?.onParse(mrzResult)
-                }
+              self.mrz(from: mrzTextImage) { parsed in
+                   if let p = parsed {
+                       self.delegate?.onParse(p)
+                   }
+               }
             }
         }
         

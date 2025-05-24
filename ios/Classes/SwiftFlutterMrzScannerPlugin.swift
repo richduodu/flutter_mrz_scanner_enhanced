@@ -2,7 +2,6 @@ import Flutter
 import UIKit
 import AVFoundation
 
-import SwiftyTesseract
 
 @objc public class FlutterMRZScannerFactory: NSObject, FlutterPlatformViewFactory {
     
