@@ -10,9 +10,8 @@ dependencies:
     sdk: flutter
   permission_handler: ^11.4.0
 
+  flutter_mrz_scanner_enhanced: any
 dev_dependencies:
-  flutter_mrz_scanner_enhanced:
-    path: ../
   flutter_test:
     sdk: flutter
 

@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
         future: Permission.camera.request(),
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data == PermissionStatus.granted) {
-            return CameraPage();
+            return const CameraPage();
           }
           if (snapshot.data == PermissionStatus.permanentlyDenied) {
             // The user opted to never again see the permission request dialog for this
