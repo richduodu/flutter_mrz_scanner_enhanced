@@ -20,8 +20,8 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        // JitPack is not needed for Fotoapparat, only enable if you use other JitPack dependencies
-        // maven { url 'https://jitpack.io' }
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://maven.adaptech.cz' }
     }
 }
 
